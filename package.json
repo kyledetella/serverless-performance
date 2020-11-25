@@ -10,6 +10,7 @@
     "fmt": "prettier --write {node,node-ts}",
     "predeploy": "npm run build",
     "deploy": "serverless deploy",
+    "invoke": "concurrently -n node,node-ts \"serverless invoke -f node -p testInput.json -l\" \"serverless invoke -f node-ts -p testInput.json -l\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

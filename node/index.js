@@ -1,4 +1,4 @@
-const main = async (event) => {
+module.exports.main = async (event) => {
   console.log("Event:", JSON.stringify(event, null, 2));
 
   return {
@@ -6,5 +6,3 @@ const main = async (event) => {
     message: `Completed at ${Date.now()}`,
   };
 };
-
-module.exports = main;
