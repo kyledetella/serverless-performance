@@ -1,0 +1,19 @@
+service: lambda-perf
+provider:
+  name: aws
+  tracing:
+    lambda: true
+
+package:
+  individually: true
+
+# plugins:
+#   - serverless-rust
+
+functions:
+  node:
+    handler: node/index.main
+    runtime: nodejs12.x
+  node-ts:
+    handler: node-ts/dist/index.main
+    runtime: nodejs12.x

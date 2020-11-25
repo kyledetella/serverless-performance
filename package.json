@@ -1,0 +1,26 @@
+{
+  "name": "lambda-performance",
+  "version": "1.0.0",
+  "description": "I want to put rust, node, go, and deno head to head.",
+  "main": "index.js",
+  "scripts": {
+    "build:node-ts": "ncc build node-ts/src/index.ts -o node-ts/dist -m -s",
+    "prebuild": "npm run fmt",
+    "build": "concurrently -n node-ts \"npm run build:node-ts\"",
+    "fmt": "prettier --write {node,node-ts}",
+    "predeploy": "npm run build",
+    "deploy": "serverless deploy",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.64",
+    "@vercel/ncc": "^0.25.1",
+    "concurrently": "^5.3.0",
+    "prettier": "^2.2.0",
+    "serverless": "^2.12.0",
+    "typescript": "^4.1.2"
+  }
+}
