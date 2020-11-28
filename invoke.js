@@ -4,71 +4,53 @@ const { Lambda } = require("aws-sdk");
 
 const lambdaClient = new Lambda({ region: "us-east-1" });
 
-const run = async (arg) => {
-  // console.log(`Starting ${arg}`);
-  const args = "invoke -f node -p testInput.json -l".split(" ");
-  const { stdout } = await execa("serverless", args);
+const runTask = (serviceName) =>
+  new Promise(async (resolve) => {
+    const runId = require("shortid").generate();
+    // console.log(`${runId} start`);
 
-  const [report] = stdout.split("\n").filter((line) => /^REPORT/.test(line));
+    // console.log(tes);
+    const start = process.hrtime();
 
-  // console.log(`Finishing ${arg}`);
-  return Number(report.split(" ")[3]); //`${arg} took: ${report.split(" ")[3]}ms`;
-};
+    const params = {
+      FunctionName: `lambda-perf-dev-${serviceName}`, // lambda-perf-dev-node
+      // ClientContext: 'STRING_VALUE',
+      InvocationType: "RequestResponse",
+      LogType: "Tail",
+      Payload: require("fs").readFileSync("testInput.json", "utf8"),
+      // Qualifier: 'STRING_VALUE'
+    };
+    const result = await lambdaClient.invoke(params).promise();
+    const end = process.hrtime(start);
 
-// const runService = async (service) => {
-//   const results = await Promise.all(new Array(200).fill(service).map(run));
-//   const avg = results.reduce((accum, val) => accum + val, 0);
+    const latency = Number(
+      ((end[0] * 1000000000 + end[1]) / 1000000).toFixed(2)
+    );
 
-//   return {
-//     service,
-//     total: results.length,
-//     min: Math.min.apply(Math, results),
-//     max: Math.max.apply(Math, results),
-//     avg: (avg / results.length).toFixed(2),
-//   };
-
-//   return `
-// ${service}
-// ${new Array(service.length).fill("_").join("")}
-// Total invocations: ${results.length}
-// Min: ${Math.min.apply(Math, results)}
-// Max: ${Math.max.apply(Math, results)},
-// Avg: ${(avg / results.length).toFixed(2)}
-//   `;
-// };
+    // console.log(`${runId} end`);
+    resolve({
+      runId,
+      latency,
+      executionTime: Number(decodeLogResult(result.LogResult)),
+    });
+  });
 
 const runService = (count) => async (serviceName) => {
-  const results = await Promise.all(
-    new Array(count).fill(serviceName).map(async () => {
-      const runId = require("shortid").generate();
+  const tasks = new Array(count).fill(serviceName);
 
-      // console.log(tes);
-      const start = process.hrtime();
-
-      const params = {
-        FunctionName: `lambda-perf-dev-${serviceName}`, // lambda-perf-dev-node
-        // ClientContext: 'STRING_VALUE',
-        InvocationType: "RequestResponse",
-        LogType: "Tail",
-        Payload: require("fs").readFileSync("testInput.json", "utf8"),
-        // Qualifier: 'STRING_VALUE'
-      };
-      const result = await lambdaClient.invoke(params).promise();
-      const end = process.hrtime(start);
-
-      const latency = Number(
-        ((end[0] * 1000000000 + end[1]) / 1000000).toFixed(2)
-      );
-
-      return {
-        runId,
-        latency,
-        executionTime: Number(decodeLogResult(result.LogResult)),
-      };
-    })
-  );
-
-  return { [serviceName]: aggregateResults(results) };
+  return tasks
+    .reduce((promiseChain, currentTask, i) => {
+      return promiseChain.then((chainResults) => {
+        console.log("running task", serviceName, i);
+        return runTask(serviceName).then((currentResult) => [
+          ...chainResults,
+          currentResult,
+        ]);
+      });
+    }, Promise.resolve([]))
+    .then((results) => ({
+      [serviceName]: aggregateResults(results),
+    }));
 };
 
 const decodeLogResult = (logResult) => {
@@ -80,10 +62,28 @@ const decodeLogResult = (logResult) => {
   return report.split(" ")[3];
 };
 
-(async () => {
-  const results = await Promise.all(["node", "node-ts"].map(runService(5000)));
+const INVOCATIONS = Number(process.env.INVOCATIONS) || 2000;
 
-  console.log(JSON.stringify(results, null, 2));
+(async () => {
+  const results = ["node", "node-ts"]
+    .reduce((promiseChain, currentTask) => {
+      return promiseChain.then((chainResults) => {
+        return runService(INVOCATIONS)(currentTask).then((currentResult) => {
+          return [...chainResults, currentResult];
+        });
+      });
+    }, Promise.resolve([]))
+    .then((results) =>
+      results.reduce((accum, val) => {
+        const [k, v] = Object.entries(val)[0];
+        return {
+          ...accum,
+          [k]: v,
+        };
+      }, {})
+    );
+
+  console.log(await results);
 })();
 
 const aggregateResults = (results) => {
@@ -114,27 +114,3 @@ const aggregateResults = (results) => {
 };
 
 const sum = (numbers) => numbers.reduce((accum, val) => accum + val, 0);
-
-// (async () => {
-//   await (await Promise.all(["node-ts"].map(runService))).forEach(
-//     ({ service, min, max, avg, total }) => {
-//       console.log(`
-// ${chalk.underline(service)}
-// Total invocations: ${total}
-// Min: ${min}ms
-// Max: ${max}ms
-// Avg: ${avg}ms
-//     `);
-//     }
-//   );
-// })();
-
-// (async () => {
-//   const args = "invoke -f node -p testInput.json -l".split(" ");
-//   const { stdout } = await execa("serverless", args);
-
-//   const [report] = stdout.split("\n").filter((line) => /^REPORT/.test(line));
-
-//   console.log(report.split(" ")[3]);
-//   //=> 'unicorns'
-// })();
