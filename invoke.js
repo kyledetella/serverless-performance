@@ -65,25 +65,19 @@ const decodeLogResult = (logResult) => {
 const INVOCATIONS = Number(process.env.INVOCATIONS) || 2000;
 
 (async () => {
-  const results = ["node", "node-ts"]
-    .reduce((promiseChain, currentTask) => {
-      return promiseChain.then((chainResults) => {
-        return runService(INVOCATIONS)(currentTask).then((currentResult) => {
-          return [...chainResults, currentResult];
-        });
-      });
-    }, Promise.resolve([]))
-    .then((results) =>
-      results.reduce((accum, val) => {
-        const [k, v] = Object.entries(val)[0];
-        return {
-          ...accum,
-          [k]: v,
-        };
-      }, {})
-    );
+  const results = await Promise.all(
+    ["node", "node-ts"].map(runService(INVOCATIONS))
+  );
 
-  console.log(await results);
+  const parsedResults = results.reduce((accum, val) => {
+    const [k, v] = Object.entries(val)[0];
+    return {
+      ...accum,
+      [k]: v,
+    };
+  }, {});
+
+  console.log(JSON.stringify(parsedResults, null, 2));
 })();
 
 const aggregateResults = (results) => {
