@@ -63,11 +63,12 @@ const decodeLogResult = (logResult) => {
 };
 
 const INVOCATIONS = Number(process.env.INVOCATIONS) || 2000;
+const SERVICES = process.env.SERVICES
+  ? process.env.SERVICES.split(",").map((str) => str.trim())
+  : ["go", "node", "node-ts"];
 
 (async () => {
-  const results = await Promise.all(
-    ["node", "node-ts"].map(runService(INVOCATIONS))
-  );
+  const results = await Promise.all(SERVICES.map(runService(INVOCATIONS)));
 
   const parsedResults = results.reduce((accum, val) => {
     const [k, v] = Object.entries(val)[0];

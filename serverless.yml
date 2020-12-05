@@ -6,6 +6,12 @@ provider:
 
 package:
   individually: true
+  exclude:
+    - ./go/**
+  include:
+    - ./go/bin/**
+
+# package:
 
 # plugins:
 #   - serverless-rust
@@ -17,3 +23,6 @@ functions:
   node-ts:
     handler: node-ts/dist/index.main
     runtime: nodejs12.x
+  go:
+    handler: go/bin/main
+    runtime: go1.x

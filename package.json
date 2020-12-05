@@ -4,9 +4,10 @@
   "description": "I want to put rust, node, go, and deno head to head.",
   "main": "index.js",
   "scripts": {
+    "build:go": "cd go && make build",
     "build:node-ts": "ncc build node-ts/src/index.ts -o node-ts/dist -m -s",
     "prebuild": "npm run fmt",
-    "build": "concurrently -n node-ts \"npm run build:node-ts\"",
+    "build": "concurrently -n node-ts,go \"npm run build:node-ts\" \"npm run build:go\"",
     "fmt": "prettier --write {node,node-ts}",
     "predeploy": "npm run build",
     "deploy": "serverless deploy",
