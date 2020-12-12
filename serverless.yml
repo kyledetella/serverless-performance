@@ -13,8 +13,8 @@ package:
 
 # package:
 
-# plugins:
-#   - serverless-rust
+plugins:
+  - serverless-rust
 
 functions:
   node:
@@ -26,3 +26,9 @@ functions:
   go:
     handler: go/bin/main
     runtime: go1.x
+  rust:
+    handler: rust
+    runtime: rust
+    rust:
+      # Because our serverless file is in a different directory than our rust project
+      cargoFlags: "--manifest-path rust/Cargo.toml"

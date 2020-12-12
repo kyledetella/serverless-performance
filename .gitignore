@@ -148,3 +148,5 @@ Cargo.lock
 .serverless
 
 # End of https://www.toptal.com/developers/gitignore/api/go,serverless,rust,node
+
+.DS_Store

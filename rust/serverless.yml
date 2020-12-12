@@ -1,0 +1,21 @@
+service: lambda-perf-rust
+provider:
+  name: aws
+  tracing:
+    lambda: true
+  runtime: rust
+
+package:
+  individually: true
+
+plugins:
+  - serverless-rust
+
+functions:
+  main:
+    handler: rust
+
+    # custom:
+#   rust:
+#       # Because our serverless file is in a different directory than our rust project
+#       cargoFlags: "--manifest-path rust/Cargo.toml"

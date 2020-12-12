@@ -1,0 +1,16 @@
+service: lambda-perf-node-ts
+provider:
+  name: aws
+  tracing:
+    lambda: true
+  runtime: nodejs12.x
+
+package:
+  individually: true
+  exclude:
+    - ./**/*
+    - "!dist/**"
+
+functions:
+  main:
+    handler: dist/index.main

@@ -12,5 +12,5 @@ node invoke.js
 
 Env vars:
 
-- `SERVICES`: One, or many of: `go`, `node`, `node-ts`
+- `SERVICES`: One, or many of: `go`, `node`, `node-ts`, `rust`
 - `INVOCATIONS` Number of invocations. Default is 2000

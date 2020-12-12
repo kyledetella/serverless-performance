@@ -1,0 +1,13 @@
+{
+  "name": "lambda-performance-node",
+  "scripts": {
+    "fmt": "prettier --write .",
+    "predeploy": "npm run fmt",
+    "deploy": "sls deploy",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "prettier": "^2.2.1",
+    "serverless": "^2.15.0"
+  }
+}
