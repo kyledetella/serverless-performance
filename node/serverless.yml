@@ -13,4 +13,4 @@ package:
 
 functions:
   main:
-    handler: node/index.main
+    handler: index.main
